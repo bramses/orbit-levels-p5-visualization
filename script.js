@@ -3,7 +3,7 @@ let orbit2Diameter;
 let orbit3Diameter;
 let orbit4Diameter;
 
-// menu controls
+// menu controls -- dat gui
 let planetSpeed;
 let planetScale;
 let colorPaletteButton;
@@ -63,7 +63,7 @@ class Planet {
     circle(
       angleVector.x + this.xOffset,
       angleVector.y + this.yOffset,
-      planetScale.value()
+      planetScale.scale
     );
   }
 
@@ -88,28 +88,32 @@ class Planet {
         return;
     }
     return p5.Vector.fromAngle(
-      ((millis() * planetSpeed.value()) % 360) + this.startAngleOffset,
+      ((millis() * planetSpeed.speed) % 360) + this.startAngleOffset,
       diameter / 2
     );
   }
 }
-
+// NB: third key ORBIT_LEVEL_MEMBERS is used to make the GUI more descriptive but doesn't serve a functional case
 const membersAtLevel = [
   {
     members: 68,
     level: 1,
+    orbitLevelOneMembers: 68
   },
   {
     members: 24,
     level: 2,
+    orbitLevelTwoMembers: 24
   },
   {
     members: 400,
     level: 3,
+    orbitLevelThreeMembers: 400
   },
   {
     members: 5000,
     level: 4,
+    orbitLevelFourMembers: 5000
   },
 ];
 
@@ -140,8 +144,38 @@ function setupPlanets () {
   }
 }
 
+class PlanetSpeed {
+  constructor () {
+    this.speed = 0.00005;
+  }
+}
+
+class PlanetScale {
+  constructor () {
+    this.scale = 3;
+  }
+}
+
+var colorScheme = {
+  isGreenPalette: false
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  
+  // gui
+  let gui = new dat.GUI();
+  planetSpeed = new PlanetSpeed()
+  planetScale = new PlanetScale()
+  gui.add(planetSpeed, 'speed', 0.00005, 0.0002, 0.00001)
+  gui.add(planetScale, 'scale', 2, 5, 1)
+  gui.add(colorScheme, 'isGreenPalette').onChange((val) => changeColorPalette(val));
+  gui.add(membersAtLevel[0], 'orbitLevelOneMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(0, val))
+  gui.add(membersAtLevel[1], 'orbitLevelTwoMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(1, val))
+  gui.add(membersAtLevel[2], 'orbitLevelThreeMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(2, val))
+  gui.add(membersAtLevel[3], 'orbitLevelFourMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(3, val))
+
+
   orbit1Diameter = min(
     windowWidth * ORBIT_1_MULTIPLIER * DIAMETER_INCREASE,
     windowHeight * ORBIT_1_MULTIPLIER * DIAMETER_INCREASE
@@ -158,25 +192,6 @@ function setup() {
     windowWidth * ORBIT_4_MULTIPLIER * DIAMETER_INCREASE,
     windowHeight * ORBIT_4_MULTIPLIER * DIAMETER_INCREASE
   );
-
-  // setup sliders for menu
-  planetSpeed = createSlider(0.00005, 0.0002, 0.00005, 0.00001);
-  planetSpeed.position(windowWidth * 0.035, windowHeight * 0.06);
-  planetSpeed.style("width", "100px");
-
-  planetScale = createSlider(3, 5, 3, 1);
-  planetScale.position(windowWidth * 0.035, windowHeight * 0.15);
-  planetScale.style("width", "100px");
-
-  colorPaletteButton = createButton("Change Color Palette");
-  colorPaletteButton.position(windowWidth * 0.035, windowHeight * 0.2);
-  colorPaletteButton.style("width", "100px");
-  colorPaletteButton.mousePressed(changeColorPalette);
-
-  saveButton = createButton("Save Settings [console.log]");
-  saveButton.position(windowWidth * 0.035, windowHeight * 0.25);
-  saveButton.style("width", "120px");
-  saveButton.mousePressed(saveSettings);
 
   setupPlanets();
 }
@@ -241,8 +256,14 @@ function drawMenu() {
   pop();
 }
 
-function changeColorPalette() {
-  if (colorPalette == 1) {
+function changeOrbitAmount (level, members) {
+  membersAtLevel[level].members = members
+  planets = [];
+  setupPlanets();
+}
+// toggle planet colors
+function changeColorPalette(colorPalette) {
+  if (colorPalette) {
     ORBIT_1_COLOR = { r: 203, g: 229, b: 142, a: 1.0 };
     ORBIT_2_COLOR = { r: 161, g: 206, b: 63, a: 1.0 };
     ORBIT_3_COLOR = { r: 16, g: 126, b: 87, a: 1.0 };
@@ -308,14 +329,6 @@ function changeColorPalette() {
   setupPlanets();
 }
 
-function saveSettings() {
-  console.log(
-    `Speed: ${planetSpeed.value()} :: Color: ${
-      colorPalette == 1 ? "Purple" : "Green"
-    } :: Planet Scale: ${planetScale.value()}`
-  );
-}
-
 function drawTooltips(planets) {
   const centerWidth = windowWidth / 2;
   const centerHeight = windowHeight / 2;
@@ -357,7 +370,6 @@ function draw() {
     drawOortCloud(orbit1Diameter, ORBIT_1_COLOR, 0);
     drawSun();
     drawTooltips(planets);
-    drawMenu();
 
     for (let i = 0; i < planets.length; i++) {
       let ring = planets[i];

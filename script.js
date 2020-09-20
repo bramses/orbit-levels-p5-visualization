@@ -16,32 +16,54 @@ const ORBIT_1_MULTIPLIER = 2.5;
 const ORBIT_2_MULTIPLIER = 3.5;
 const ORBIT_3_MULTIPLIER = 4.5;
 const ORBIT_4_MULTIPLIER = 5.5;
-let ORBIT_1_COLOR = { r: 33, g: 5, b: 53, a: 1.0 };
-let ORBIT_2_COLOR = { r: 67, g: 13, b: 75, a: 1.0 };
-let ORBIT_3_COLOR = { r: 123, g: 51, b: 125, a: 1.0 };
-let ORBIT_4_COLOR = { r: 200, g: 116, b: 178, a: 1.0 };
+
+// sets max particles rendered on load -- overridden by any menu edits
+const MAX_PARTICLES_DRAWN = 750;
+
+// edit these to create your own color scheme! each one corresponds to an expanding level!
+const COLOR_PALETTES = [
+  {
+    1: { r: 33, g: 5, b: 53, a: 1.0 },
+    2: { r: 67, g: 13, b: 75, a: 1.0 },
+    3: { r: 123, g: 51, b: 125, a: 1.0 },
+    4: { r: 200, g: 116, b: 178, a: 1.0 },
+  },
+  {
+    1: { r: 203, g: 229, b: 142, a: 1.0 },
+    2: { r: 161, g: 206, b: 63, a: 1.0 },
+    3: { r: 16, g: 126, b: 87, a: 1.0 },
+    4: { r: 1, g: 71, b: 96, a: 1.0 }
+  }
+];
+
+const PLANET_COLOR_OFFSET = 110;
+
+let ORBIT_1_COLOR = COLOR_PALETTES[0][1];
+let ORBIT_2_COLOR = COLOR_PALETTES[0][2];
+let ORBIT_3_COLOR = COLOR_PALETTES[0][3];
+let ORBIT_4_COLOR = COLOR_PALETTES[0][4];
 let PLANET_1_COLOR = {
-  r: ORBIT_1_COLOR.r + 110,
-  g: ORBIT_1_COLOR.g + 110,
-  b: ORBIT_1_COLOR.b + 110,
+  r: ORBIT_1_COLOR.r + PLANET_COLOR_OFFSET,
+  g: ORBIT_1_COLOR.g + PLANET_COLOR_OFFSET,
+  b: ORBIT_1_COLOR.b + PLANET_COLOR_OFFSET,
   a: 1.0,
 };
 let PLANET_2_COLOR = {
-  r: ORBIT_2_COLOR.r + 110,
-  g: ORBIT_2_COLOR.g + 110,
-  b: ORBIT_2_COLOR.b + 110,
+  r: ORBIT_2_COLOR.r + PLANET_COLOR_OFFSET,
+  g: ORBIT_2_COLOR.g + PLANET_COLOR_OFFSET,
+  b: ORBIT_2_COLOR.b + PLANET_COLOR_OFFSET,
   a: 1.0,
 };
 let PLANET_3_COLOR = {
-  r: ORBIT_3_COLOR.r + 110,
-  g: ORBIT_3_COLOR.g + 110,
-  b: ORBIT_3_COLOR.b + 110,
+  r: ORBIT_3_COLOR.r + PLANET_COLOR_OFFSET,
+  g: ORBIT_3_COLOR.g + PLANET_COLOR_OFFSET,
+  b: ORBIT_3_COLOR.b + PLANET_COLOR_OFFSET,
   a: 1.0,
 };
 let PLANET_4_COLOR = {
-  r: ORBIT_4_COLOR.r + 110,
-  g: ORBIT_4_COLOR.g + 110,
-  b: ORBIT_4_COLOR.b + 110,
+  r: ORBIT_4_COLOR.r + PLANET_COLOR_OFFSET,
+  g: ORBIT_4_COLOR.g + PLANET_COLOR_OFFSET,
+  b: ORBIT_4_COLOR.b + PLANET_COLOR_OFFSET,
   a: 1.0,
 };
 
@@ -93,36 +115,75 @@ class Planet {
     );
   }
 }
-// NB: third key ORBIT_LEVEL_MEMBERS is used to make the GUI more descriptive but doesn't serve a functional case
-const membersAtLevel = [
+// NB: third key ORBIT_LEVEL_MEMBERS is used to make the GUI more descriptive and is displayed on the tooltip. The members key will modify on user input
+let membersAtLevel = [
   {
     members: 68,
     level: 1,
-    orbitLevelOneMembers: 68
+    orbitLevelOneMembers: 68,
   },
   {
     members: 24,
     level: 2,
-    orbitLevelTwoMembers: 24
+    orbitLevelTwoMembers: 24,
   },
   {
     members: 400,
     level: 3,
-    orbitLevelThreeMembers: 400
+    orbitLevelThreeMembers: 400,
   },
   {
     members: 5000,
     level: 4,
-    orbitLevelFourMembers: 5000
+    orbitLevelFourMembers: 5000,
   },
 ];
 
 let planets = [];
 
-function setupPlanets () {
+function setProportions(membersAtLevel) {
+  const members = [];
+  for (let i = 0; i < membersAtLevel.length; i++) {
+    members.push(membersAtLevel[i].members);
+  }
+
+  let overMaxParticles = false;
+  let max = members[0];
+  let maxIndex = 0;
+
+  for (let i = 0; i < members.length; i++) {
+    if (members[i] > MAX_PARTICLES_DRAWN) overMaxParticles = true;
+    // fetch max number and max index
+    if (members[i] > max) {
+      maxIndex = i;
+      max = members[i];
+    }
+  }
+
+  if (overMaxParticles) {
+    const originalProportions = [];
+    for (let i = 0; i < members.length; i++) {
+      originalProportions.push(members[i] / max);
+    }
+
+    // put in proportions capped at MAX_PARTICLES_DRAWN and reload how many members are in the group
+    for (let i = 0; i < originalProportions.length; i++) {
+      membersAtLevel[i].proportionMembers = Math.round(
+        MAX_PARTICLES_DRAWN * originalProportions[i]
+      );
+    }
+  }
+
+  return membersAtLevel;
+}
+
+function setupPlanets() {
+  membersAtLevel = setProportions(membersAtLevel);
   for (let i = 0; i < membersAtLevel.length; i++) {
     const members = membersAtLevel[i];
-    const memberCount = members.members;
+    const memberCount = members.proportionMembers
+      ? members.proportionMembers
+      : members.members;
     let color;
     if (members.level == 1) {
       color = PLANET_1_COLOR;
@@ -145,36 +206,45 @@ function setupPlanets () {
 }
 
 class PlanetSpeed {
-  constructor () {
+  constructor() {
     this.speed = 0.00005;
   }
 }
 
 class PlanetScale {
-  constructor () {
+  constructor() {
     this.scale = 3;
   }
 }
 
 var colorScheme = {
-  isGreenPalette: false
-}
+  isGreenPalette: false,
+};
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  
+
   // gui
   let gui = new dat.GUI();
-  planetSpeed = new PlanetSpeed()
-  planetScale = new PlanetScale()
-  gui.add(planetSpeed, 'speed', 0.00005, 0.0002, 0.00001)
-  gui.add(planetScale, 'scale', 2, 5, 1)
-  gui.add(colorScheme, 'isGreenPalette').onChange((val) => changeColorPalette(val));
-  gui.add(membersAtLevel[0], 'orbitLevelOneMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(0, val))
-  gui.add(membersAtLevel[1], 'orbitLevelTwoMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(1, val))
-  gui.add(membersAtLevel[2], 'orbitLevelThreeMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(2, val))
-  gui.add(membersAtLevel[3], 'orbitLevelFourMembers', 0, 1000, 1).onChange((val) => changeOrbitAmount(3, val))
-
+  planetSpeed = new PlanetSpeed();
+  planetScale = new PlanetScale();
+  gui.add(planetSpeed, "speed", 0.00005, 0.0002, 0.00001);
+  gui.add(planetScale, "scale", 2, 5, 1);
+  gui
+    .add(colorScheme, "isGreenPalette")
+    .onChange((val) => changeColorPalette(val));
+  gui
+    .add(membersAtLevel[0], "orbitLevelOneMembers", 0, 1000, 1)
+    .onChange((val) => changeOrbitAmount(0, val));
+  gui
+    .add(membersAtLevel[1], "orbitLevelTwoMembers", 0, 1000, 1)
+    .onChange((val) => changeOrbitAmount(1, val));
+  gui
+    .add(membersAtLevel[2], "orbitLevelThreeMembers", 0, 1000, 1)
+    .onChange((val) => changeOrbitAmount(2, val));
+  gui
+    .add(membersAtLevel[3], "orbitLevelFourMembers", 0, 1000, 1)
+    .onChange((val) => changeOrbitAmount(3, val));
 
   orbit1Diameter = min(
     windowWidth * ORBIT_1_MULTIPLIER * DIAMETER_INCREASE,
@@ -212,6 +282,8 @@ function drawSun() {
   circle(0, 0, 70);
   fill("rgba(255, 204, 0, 0.2)");
   circle(0, 0, 80);
+  fill(0);
+  // text('Company Name', -40, 0)
 }
 
 function drawOrbitLines() {
@@ -241,85 +313,70 @@ function drawOortCloud(startDiameter, rgb, endDiameter) {
   }
 }
 
-function drawMenu() {
-  push();
-  translate(-windowWidth / 2, -windowHeight / 2);
-  stroke(128);
-  strokeWeight(1);
-  fill(255);
-  rect(windowWidth * .01, windowHeight * .01, windowWidth * .12, max(windowHeight * .3, 300))
-  fill(0);
-  noStroke();
-  textSize(14);
-  text("Planet Speed:", windowWidth * 0.035, windowHeight * 0.043);
-  text("Planet Scale:", windowWidth * 0.035, windowHeight * 0.133);
-  pop();
-}
-
-function changeOrbitAmount (level, members) {
-  membersAtLevel[level].members = members
+function changeOrbitAmount(level, members) {
+  membersAtLevel[level].members = members;
   planets = [];
   setupPlanets();
 }
 // toggle planet colors
 function changeColorPalette(colorPalette) {
   if (colorPalette) {
-    ORBIT_1_COLOR = { r: 203, g: 229, b: 142, a: 1.0 };
-    ORBIT_2_COLOR = { r: 161, g: 206, b: 63, a: 1.0 };
-    ORBIT_3_COLOR = { r: 16, g: 126, b: 87, a: 1.0 };
-    ORBIT_4_COLOR = { r: 1, g: 71, b: 96, a: 1.0 };
+    ORBIT_1_COLOR = COLOR_PALETTES[1][1];
+    ORBIT_2_COLOR = COLOR_PALETTES[1][2];
+    ORBIT_3_COLOR = COLOR_PALETTES[1][3];
+    ORBIT_4_COLOR = COLOR_PALETTES[1][4];
     PLANET_1_COLOR = {
-      r: ORBIT_1_COLOR.r + 110,
-      g: ORBIT_1_COLOR.g + 110,
-      b: ORBIT_1_COLOR.b + 110,
+      r: ORBIT_1_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_1_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_1_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
     PLANET_2_COLOR = {
-      r: ORBIT_2_COLOR.r + 110,
-      g: ORBIT_2_COLOR.g + 110,
-      b: ORBIT_2_COLOR.b + 110,
+      r: ORBIT_2_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_2_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_2_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
     PLANET_3_COLOR = {
-      r: ORBIT_3_COLOR.r + 110,
-      g: ORBIT_3_COLOR.g + 110,
-      b: ORBIT_3_COLOR.b + 110,
+      r: ORBIT_3_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_3_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_3_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
     PLANET_4_COLOR = {
-      r: ORBIT_4_COLOR.r + 110,
-      g: ORBIT_4_COLOR.g + 110,
-      b: ORBIT_4_COLOR.b + 110,
+      r: ORBIT_4_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_4_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_4_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
     colorPalette = 2;
   } else {
-    ORBIT_1_COLOR = { r: 33, g: 5, b: 53, a: 1.0 };
-    ORBIT_2_COLOR = { r: 67, g: 13, b: 75, a: 1.0 };
-    ORBIT_3_COLOR = { r: 123, g: 51, b: 125, a: 1.0 };
-    ORBIT_4_COLOR = { r: 200, g: 116, b: 178, a: 1.0 };
+    ORBIT_1_COLOR = COLOR_PALETTES[0][1];
+    ORBIT_2_COLOR = COLOR_PALETTES[0][2];
+    ORBIT_3_COLOR = COLOR_PALETTES[0][3];
+    ORBIT_4_COLOR = COLOR_PALETTES[0][4];
     PLANET_1_COLOR = {
-      r: ORBIT_1_COLOR.r + 110,
-      g: ORBIT_1_COLOR.g + 110,
-      b: ORBIT_1_COLOR.b + 110,
+      r: ORBIT_1_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_1_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_1_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
     PLANET_2_COLOR = {
-      r: ORBIT_2_COLOR.r + 110,
-      g: ORBIT_2_COLOR.g + 110,
-      b: ORBIT_2_COLOR.b + 110,
+      r: ORBIT_2_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_2_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_2_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
     PLANET_3_COLOR = {
-      r: ORBIT_3_COLOR.r + 110,
-      g: ORBIT_3_COLOR.g + 110,
-      b: ORBIT_3_COLOR.b + 110,
+      r: ORBIT_3_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_3_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_3_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
     PLANET_4_COLOR = {
-      r: ORBIT_4_COLOR.r + 110,
-      g: ORBIT_4_COLOR.g + 110,
-      b: ORBIT_4_COLOR.b + 110,
+      r: ORBIT_4_COLOR.r + PLANET_COLOR_OFFSET,
+      g: ORBIT_4_COLOR.g + PLANET_COLOR_OFFSET,
+      b: ORBIT_4_COLOR.b + PLANET_COLOR_OFFSET,
       a: 1.0,
     };
 
@@ -329,81 +386,74 @@ function changeColorPalette(colorPalette) {
   setupPlanets();
 }
 
-function drawTooltips(planets) {
+function computeTooltips() {
   const centerWidth = windowWidth / 2;
   const centerHeight = windowHeight / 2;
   // orbit level 1
   if (dist(mouseX, mouseY, centerWidth, centerHeight) < orbit1Diameter / 2) {
-    computeTooltip(centerWidth, centerHeight, planets[0].length);
+    drawTooltip(
+      centerWidth,
+      centerHeight,
+      membersAtLevel[0].orbitLevelOneMembers
+    );
   } else if (
     dist(mouseX, mouseY, centerWidth, centerHeight) < orbit2Diameter / 2 &&
     dist(mouseX, mouseY, centerWidth, centerHeight) > orbit1Diameter / 2
   ) {
-    computeTooltip(centerWidth, centerHeight, planets[1].length);
+    drawTooltip(
+      centerWidth,
+      centerHeight,
+      membersAtLevel[1].orbitLevelTwoMembers
+    );
   } else if (
     dist(mouseX, mouseY, centerWidth, centerHeight) < orbit3Diameter / 2 &&
     dist(mouseX, mouseY, centerWidth, centerHeight) > orbit2Diameter / 2
   ) {
-    computeTooltip(centerWidth, centerHeight, planets[2].length);
+    drawTooltip(
+      centerWidth,
+      centerHeight,
+      membersAtLevel[2].orbitLevelThreeMembers
+    );
   } else if (
     dist(mouseX, mouseY, centerWidth, centerHeight) < orbit4Diameter / 2 &&
     dist(mouseX, mouseY, centerWidth, centerHeight) > orbit3Diameter / 2
   ) {
-    computeTooltip(centerWidth, centerHeight, planets[3].length);
+    drawTooltip(
+      centerWidth,
+      centerHeight,
+      membersAtLevel[3].orbitLevelFourMembers
+    );
   }
 }
 
-function computeTooltip(centerWidth, centerHeight, txt) {
+// hover tooltip that displays member count for each orbit level
+function drawTooltip(centerWidth, centerHeight, txt) {
+  fill("#000000");
+  rect(mouseX - centerWidth, mouseY - centerHeight, 180, 50, 10);
   fill(255);
-  rect(mouseX - centerWidth, mouseY - centerHeight, 100, 50);
-  fill(0);
-  textSize(32);
-  text(txt, mouseX - centerWidth + 10, mouseY - centerHeight + 30);
+  textSize(24);
+  text(
+    "Members: " + txt,
+    mouseX - centerWidth + 10,
+    mouseY - centerHeight + 30
+  );
 }
 
 function draw() {
-  if (!interpolating) {
-    drawBackground();
-    drawOortCloud(orbit4Diameter, ORBIT_4_COLOR, orbit3Diameter);
-    drawOortCloud(orbit3Diameter, ORBIT_3_COLOR, orbit2Diameter);
-    drawOortCloud(orbit2Diameter, ORBIT_2_COLOR, orbit1Diameter);
-    drawOortCloud(orbit1Diameter, ORBIT_1_COLOR, 0);
-    drawSun();
-    drawTooltips(planets);
+  drawBackground();
+  drawOortCloud(orbit4Diameter, ORBIT_4_COLOR, orbit3Diameter);
+  drawOortCloud(orbit3Diameter, ORBIT_3_COLOR, orbit2Diameter);
+  drawOortCloud(orbit2Diameter, ORBIT_2_COLOR, orbit1Diameter);
+  drawOortCloud(orbit1Diameter, ORBIT_1_COLOR, 0);
+  drawSun();
+  computeTooltips();
 
-    for (let i = 0; i < planets.length; i++) {
-      let ring = planets[i];
-      for (let j = 0; j < ring.length; j++) {
-        // stop at 1000 particles?
-        if (j <= 1000) {
-          let planet = planets[i][j];
-          planet.drawPlanet();
-        }
-      }
+  for (let i = 0; i < planets.length; i++) {
+    let ring = planets[i];
+    for (let j = 0; j < ring.length; j++) {
+      let planet = planets[i][j];
+      planet.drawPlanet();
     }
-  } else {
-    if (drawCount > 500) {
-      noLoop();
-    }
-
-    drawBackground();
-    drawOrbitLines();
-    drawOortCloud();
-
-    let orbitPos = lerp(
-      orbit4Diameter / 2,
-      orbit3Diameter / 2,
-      drawCount / 500
-    );
-
-    fill(255, 0, 255);
-    noStroke();
-    let planet4Vec = p5.Vector.fromAngle(
-      (millis() * 0.0003 + 115) % 360,
-      orbitPos
-    );
-    circle(planet4Vec.x, planet4Vec.y, 45);
-    drawCount++;
   }
 }
 

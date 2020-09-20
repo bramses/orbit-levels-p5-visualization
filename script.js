@@ -8,7 +8,6 @@ let planetSpeed;
 let planetScale;
 let colorPaletteButton;
 let colorPalette = 1;
-let saveButton;
 
 // constants
 const DIAMETER_INCREASE = 0.15;

@@ -18,3 +18,10 @@ Netlify Live Demo: https://jovial-nightingale-f753d7.netlify.app/
 
 When you run the code, you'll see a GUI in the top left corner of the visual. In the GUI you can modify the color palette, the speed and scale of the planets, and the member counts in each orbit level.
 
+If you prefer to hardcode settings you can edit them in `script.js`.
+
+Try modifying:
+- COLOR_PALETTES
+- MAX_PARTICLES_DRAWN
+- PlanetSpeed() constructor
+- PlanetScale() constructor

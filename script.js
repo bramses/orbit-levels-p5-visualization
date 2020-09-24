@@ -444,15 +444,15 @@ function draw() {
   drawOortCloud(orbit2Diameter, ORBIT_2_COLOR, orbit1Diameter);
   drawOortCloud(orbit1Diameter, ORBIT_1_COLOR, 0);
   drawSun();
-  // computeTooltips();
+  computeTooltips();
 
-  // for (let i = 0; i < planets.length; i++) {
-  //   let ring = planets[i];
-  //   for (let j = 0; j < ring.length; j++) {
-  //     let planet = planets[i][j];
-  //     planet.drawPlanet();
-  //   }
-  // }
+  for (let i = 0; i < planets.length; i++) {
+    let ring = planets[i];
+    for (let j = 0; j < ring.length; j++) {
+      let planet = planets[i][j];
+      planet.drawPlanet();
+    }
+  }
 }
 
 // TODO refactor

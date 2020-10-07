@@ -8,6 +8,8 @@ let planetSpeed;
 let planetScale;
 let colorPaletteButton;
 let colorPalette = 1;
+let particleConfig;
+const MAX_MEMBERS = 5000; // members max displayed on GUI
 
 // constants
 const DIAMETER_INCREASE = 0.15;
@@ -17,7 +19,7 @@ const ORBIT_3_MULTIPLIER = 4.5;
 const ORBIT_4_MULTIPLIER = 5.5;
 
 // sets max particles rendered on load -- overridden by any menu edits
-const MAX_PARTICLES_DRAWN = 750;
+const MAX_PARTICLES_DRAWN = 1000; 
 
 // edit these to create your own color scheme! each one corresponds to an expanding level!
 const COLOR_PALETTES = [
@@ -177,7 +179,7 @@ function setProportions(membersAtLevel) {
 }
 
 function setupPlanets() {
-  membersAtLevel = setProportions(membersAtLevel);
+  // membersAtLevel = setProportions(membersAtLevel);
   for (let i = 0; i < membersAtLevel.length; i++) {
     const members = membersAtLevel[i];
     const memberCount = members.proportionMembers
@@ -197,7 +199,7 @@ function setupPlanets() {
     }
 
     const orbitLevel = [];
-    for (let j = 0; j < memberCount; j++) {
+    for (let j = 0; j < Math.min(memberCount, particleConfig.maxParticlesDrawn); j++) {
       orbitLevel.push(new Planet(color, members.level));
     }
     planets.push(orbitLevel);
@@ -216,6 +218,12 @@ class PlanetScale {
   }
 }
 
+class ParticleConfig {
+  constructor () {
+    this.maxParticlesDrawn = MAX_PARTICLES_DRAWN;
+  }
+}
+
 var colorScheme = {
   isGreenPalette: false,
 };
@@ -227,23 +235,27 @@ function setup() {
   let gui = new dat.GUI();
   planetSpeed = new PlanetSpeed();
   planetScale = new PlanetScale();
+  particleConfig = new ParticleConfig();
+
   gui.add(planetSpeed, "speed", 0.00005, 0.0002, 0.00001);
   gui.add(planetScale, "scale", 2, 5, 1);
   gui
     .add(colorScheme, "isGreenPalette")
     .onChange((val) => changeColorPalette(val));
   gui
-    .add(membersAtLevel[0], "orbitLevelOneMembers", 0, 1000, 1)
+    .add(membersAtLevel[0], "orbitLevelOneMembers", 0, MAX_MEMBERS, 1)
     .onChange((val) => changeOrbitAmount(0, val));
   gui
-    .add(membersAtLevel[1], "orbitLevelTwoMembers", 0, 1000, 1)
+    .add(membersAtLevel[1], "orbitLevelTwoMembers", 0, MAX_MEMBERS, 1)
     .onChange((val) => changeOrbitAmount(1, val));
   gui
-    .add(membersAtLevel[2], "orbitLevelThreeMembers", 0, 1000, 1)
+    .add(membersAtLevel[2], "orbitLevelThreeMembers", 0, MAX_MEMBERS, 1)
     .onChange((val) => changeOrbitAmount(2, val));
   gui
-    .add(membersAtLevel[3], "orbitLevelFourMembers", 0, 1000, 1)
+    .add(membersAtLevel[3], "orbitLevelFourMembers", 0, MAX_MEMBERS, 1)
     .onChange((val) => changeOrbitAmount(3, val));
+  gui
+    .add(particleConfig, "maxParticlesDrawn", 250, 2500, 1)
 
   orbit1Diameter = min(
     windowWidth * ORBIT_1_MULTIPLIER * DIAMETER_INCREASE,

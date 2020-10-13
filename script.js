@@ -228,9 +228,14 @@ var colorScheme = {
   isGreenPalette: false,
 };
 
+// load in google font
+let interFont;
+function preload() {
+  interFont = loadFont('assets/Inter-VariableFont_slnt,wght.ttf');
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
-
   // gui
   let gui = new dat.GUI();
   planetSpeed = new PlanetSpeed();
@@ -441,12 +446,23 @@ function drawTooltip(centerWidth, centerHeight, txt) {
   fill("#000000");
   rect(mouseX - centerWidth, mouseY - centerHeight, 180, 50, 10);
   fill(255);
+  textFont(interFont);
   textSize(24);
   text(
     "Members: " + txt,
     mouseX - centerWidth + 10,
     mouseY - centerHeight + 30
   );
+}
+
+function drawOrganizationTitle (orgName) {
+  fill(255);
+  push();
+  translate(-windowWidth / 2, -windowHeight / 2);
+  textFont(interFont);
+  textSize(72);
+  text(orgName, windowWidth * .005, windowHeight * .1)
+  pop();
 }
 
 function draw() {
@@ -456,6 +472,7 @@ function draw() {
   drawOortCloud(orbit2Diameter, ORBIT_2_COLOR, orbit1Diameter);
   drawOortCloud(orbit1Diameter, ORBIT_1_COLOR, 0);
   drawSun();
+  drawOrganizationTitle("GITHUB")
   computeTooltips();
 
   for (let i = 0; i < planets.length; i++) {
@@ -467,34 +484,3 @@ function draw() {
   }
 }
 
-// TODO refactor
-function stopAndLerp() {
-  while (drawCount < 5000) {
-    translate(windowWidth / 2, windowHeight / 2);
-    background(0);
-    noStroke();
-    fill(255, 204, 0);
-    // orbit lines
-    noFill();
-    stroke("rgba(255, 255, 255, 0.6)");
-    circle(0, 0, orbit1Diameter);
-    circle(0, 0, orbit2Diameter);
-    circle(0, 0, orbit3Diameter);
-    circle(0, 0, orbit4Diameter);
-
-    let orbitPos = lerp(
-      orbit4Diameter / 2,
-      orbit3Diameter / 2,
-      drawCount / 5000
-    );
-
-    fill(255, 0, 255);
-    noStroke();
-    let planet4Vec = p5.Vector.fromAngle(
-      (millis() * 0.0003 + 115) % 360,
-      orbitPos
-    );
-    circle(planet4Vec.x, planet4Vec.y, 70);
-    drawCount++;
-  }
-}

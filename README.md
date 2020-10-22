@@ -1,8 +1,8 @@
-# Orbit Love Visualization
+# Visualize your Orbit levels
 
-A visual and intuitive way to display your data in Orbit
+A visual and intuitive way to display your data from [Orbit](https://orbit.love/), a tool for managing and growing communities. Check out the [Orbit Model](https://github.com/orbit-love/orbit-model) repository on GitHub to learn more about the orbit levels and how they can help you visualize and measure your community.
 
-Netlify Live Demo: https://jovial-nightingale-f753d7.netlify.app/
+Live Demo: https://jovial-nightingale-f753d7.netlify.app/
 
 # Installation
 

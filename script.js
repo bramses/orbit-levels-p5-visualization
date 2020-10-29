@@ -472,7 +472,7 @@ function draw() {
   drawOortCloud(orbit2Diameter, ORBIT_2_COLOR, orbit1Diameter);
   drawOortCloud(orbit1Diameter, ORBIT_1_COLOR, 0);
   drawSun();
-  drawOrganizationTitle("GITHUB")
+  drawOrganizationTitle("MY COMMUNITY")
   computeTooltips();
 
   for (let i = 0; i < planets.length; i++) {

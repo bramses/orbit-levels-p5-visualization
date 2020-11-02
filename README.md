@@ -2,9 +2,9 @@
 
 A visual and intuitive way to display your data from [Orbit](https://orbit.love/), a tool for managing and growing communities. Check out the [Orbit Model](https://github.com/orbit-love/orbit-model) repository on GitHub to learn more about the orbit levels and how they can help you visualize and measure your community.
 
-Live Demo: https://jovial-nightingale-f753d7.netlify.app/
+Live Demo: https://orbit-visualization-demo.netlify.app/
 
-# Installation
+# Local Installation
 
 1. Download or clone this folder into your local directory
 2. Check if you have Python installed by running `python --version`

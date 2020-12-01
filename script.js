@@ -119,24 +119,24 @@ class Planet {
 // NB: third key ORBIT_LEVEL_MEMBERS is used to make the GUI more descriptive and is displayed on the tooltip. The members key will modify on user input
 let membersAtLevel = [
   {
-    members: 68,
+    members: 80,
     level: 1,
-    orbitLevelOneMembers: 68,
+    orbitLevelOneMembers: 80,
   },
   {
-    members: 24,
+    members: 160,
     level: 2,
-    orbitLevelTwoMembers: 24,
+    orbitLevelTwoMembers: 160,
   },
   {
-    members: 400,
+    members: 580,
     level: 3,
-    orbitLevelThreeMembers: 400,
+    orbitLevelThreeMembers: 580,
   },
   {
-    members: 5000,
+    members: 1600,
     level: 4,
-    orbitLevelFourMembers: 5000,
+    orbitLevelFourMembers: 1600,
   },
 ];
 
